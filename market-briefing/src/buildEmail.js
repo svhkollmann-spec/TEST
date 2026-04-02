@@ -25,6 +25,14 @@ function dirArrow(dir) {
   return dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—';
 }
 
+// Colour a GFEX change value (raw string, e.g. "-120" or "+80")
+function changeColor(val) {
+  if (!val || val === '—') return '#6b7280';
+  const n = parseFloat(val.replace(/,/g, ''));
+  if (isNaN(n)) return '#6b7280';
+  return n > 0 ? '#16a34a' : n < 0 ? '#dc2626' : '#6b7280';
+}
+
 // ---------------------------------------------------------------------------
 // Quote table rows
 // ---------------------------------------------------------------------------
@@ -49,6 +57,75 @@ function quoteRows(quotes) {
         </tr>`;
     })
     .join('');
+}
+
+// ---------------------------------------------------------------------------
+// GFEX LC Futures table
+// ---------------------------------------------------------------------------
+function gfexTableHtml(contracts) {
+  if (!contracts || contracts.length === 0) {
+    return `
+      <div style="margin-bottom:32px;">
+        <h2 style="font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;
+                   letter-spacing:.06em;margin:0 0 12px;">
+          GFEX Lithium Carbonate Futures (CNY/t)
+        </h2>
+        <p style="font-size:13px;color:#9ca3af;font-style:italic;">
+          Data unavailable — GFEX may have blocked the request or Chromium is not installed.<br/>
+          Run <code>npm run install-browsers</code> then retry.
+        </p>
+      </div>`;
+  }
+
+  const rows = contracts.map(c => {
+    const chgColor = changeColor(c.change);
+    return `
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:6px 10px;font-weight:600;color:#0f172a;">${c.contract}</td>
+        <td style="padding:6px 10px;text-align:right;">${c.prevSettle}</td>
+        <td style="padding:6px 10px;text-align:right;">${c.open}</td>
+        <td style="padding:6px 10px;text-align:right;">${c.high}</td>
+        <td style="padding:6px 10px;text-align:right;">${c.low}</td>
+        <td style="padding:6px 10px;text-align:right;font-weight:600;">${c.settle}</td>
+        <td style="padding:6px 10px;text-align:right;color:${chgColor};font-weight:600;">${c.change}</td>
+        <td style="padding:6px 10px;text-align:right;color:${chgColor};">${c.changePct}</td>
+        <td style="padding:6px 10px;text-align:right;color:#6b7280;">${c.volume}</td>
+        <td style="padding:6px 10px;text-align:right;color:#6b7280;">${c.openInterest}</td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:32px;">
+      <h2 style="font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;
+                 letter-spacing:.06em;margin:0 0 4px;">
+        GFEX Lithium Carbonate Futures (CNY/t)
+      </h2>
+      <p style="font-size:11px;color:#9ca3af;margin:0 0 10px;">
+        Source: <a href="http://www.gfex.com.cn/en/LithiumCarbonate/LithiumCarbonate.shtml"
+                   style="color:#9ca3af;">gfex.com.cn</a>
+        · ${contracts[0]?.date ?? ''}
+      </p>
+      <div style="overflow-x:auto;">
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="font-size:12px;border-collapse:collapse;min-width:580px;">
+          <thead>
+            <tr style="background:#f0fdf4;font-size:10px;color:#6b7280;text-transform:uppercase;">
+              <th style="padding:6px 10px;text-align:left;">Contract</th>
+              <th style="padding:6px 10px;text-align:right;">Prev.Settle</th>
+              <th style="padding:6px 10px;text-align:right;">Open</th>
+              <th style="padding:6px 10px;text-align:right;">High</th>
+              <th style="padding:6px 10px;text-align:right;">Low</th>
+              <th style="padding:6px 10px;text-align:right;">Settle</th>
+              <th style="padding:6px 10px;text-align:right;">Chg</th>
+              <th style="padding:6px 10px;text-align:right;">Chg%</th>
+              <th style="padding:6px 10px;text-align:right;">Volume</th>
+              <th style="padding:6px 10px;text-align:right;">OI</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,9 +155,9 @@ function headlineSection(source, headlines) {
 // ---------------------------------------------------------------------------
 // Main builder
 // ---------------------------------------------------------------------------
-function buildEmail({ quotes, topEvent, bySource, dateStr }) {
-  const goodQuotes  = quotes.filter(q => q.price !== null);
-  const movers      = [...goodQuotes].sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)).slice(0, 3);
+function buildEmail({ quotes, topEvent, bySource, gfexContracts, dateStr }) {
+  const goodQuotes = quotes.filter(q => q.price !== null);
+  const movers     = [...goodQuotes].sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)).slice(0, 3);
 
   // Top-event banner
   const topEventHtml = topEvent
@@ -121,21 +198,21 @@ function buildEmail({ quotes, topEvent, bySource, dateStr }) {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Morning Market Briefing</title>
+  <title>Morning Lithium Briefing</title>
 </head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,
              'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:24px 0;">
     <tr><td align="center">
-      <table width="640" cellpadding="0" cellspacing="0"
+      <table width="700" cellpadding="0" cellspacing="0"
              style="background:#ffffff;border-radius:8px;overflow:hidden;
-                    box-shadow:0 1px 3px rgba(0,0,0,.1);max-width:640px;width:100%;">
+                    box-shadow:0 1px 3px rgba(0,0,0,.1);max-width:700px;width:100%;">
 
         <!-- Header -->
         <tr>
           <td style="background:#0f172a;padding:24px 32px;">
             <div style="font-size:22px;font-weight:700;color:#f8fafc;letter-spacing:-.02em;">
-              Morning Market Briefing
+              Morning Lithium Briefing
             </div>
             <div style="font-size:13px;color:#94a3b8;margin-top:4px;">${dateStr}</div>
           </td>
@@ -157,7 +234,7 @@ function buildEmail({ quotes, topEvent, bySource, dateStr }) {
             </div>
           </div>` : ''}
 
-          <!-- Full Quote Table -->
+          <!-- Equity / FX Snapshot -->
           <div style="margin-bottom:32px;">
             <h2 style="font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;
                        letter-spacing:.06em;margin:0 0 12px;">Market Snapshot</h2>
@@ -172,11 +249,12 @@ function buildEmail({ quotes, topEvent, bySource, dateStr }) {
                   <th style="padding:8px 12px;text-align:right;">Chg</th>
                 </tr>
               </thead>
-              <tbody>
-                ${quoteRows(quotes)}
-              </tbody>
+              <tbody>${quoteRows(quotes)}</tbody>
             </table>
           </div>
+
+          <!-- GFEX LC Futures Curve -->
+          ${gfexTableHtml(gfexContracts)}
 
           <!-- News Headlines -->
           <div>
@@ -191,7 +269,7 @@ function buildEmail({ quotes, topEvent, bySource, dateStr }) {
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e5e7eb;
                      padding:16px 32px;font-size:11px;color:#9ca3af;">
-            Generated automatically · Data from Yahoo Finance &amp; scraped sources ·
+            Generated automatically · Equity data: Yahoo Finance · Futures: GFEX ·
             Prices may be delayed · Not financial advice
           </td>
         </tr>
@@ -203,19 +281,33 @@ function buildEmail({ quotes, topEvent, bySource, dateStr }) {
 </html>`;
 
   // Plain-text fallback
+  const gfexText = gfexContracts && gfexContracts.length
+    ? [
+        '',
+        'GFEX LC FUTURES (CNY/t)',
+        '-'.repeat(70),
+        'Contract  Prev.Settle  Open       High       Low        Settle     Chg',
+        '-'.repeat(70),
+        ...gfexContracts.map(c =>
+          `${c.contract.padEnd(9)} ${String(c.prevSettle).padStart(11)} ${String(c.open).padStart(10)} ${String(c.high).padStart(10)} ${String(c.low).padStart(10)} ${String(c.settle).padStart(10)} ${String(c.change).padStart(6)}`
+        ),
+      ].join('\n')
+    : '\nGFEX LC FUTURES: unavailable\n';
+
   const text = [
-    `MORNING MARKET BRIEFING — ${dateStr}`,
-    '='.repeat(50),
+    `MORNING LITHIUM BRIEFING — ${dateStr}`,
+    '='.repeat(60),
     '',
     topEvent ? `BIGGEST OVERNIGHT EVENT\n${topEvent.text}\n(${topEvent.source})\n` : '',
     'MARKET SNAPSHOT',
-    '-'.repeat(40),
+    '-'.repeat(60),
     ...quotes.map(q =>
-      `${q.symbol.padEnd(8)} ${String(q.name).padEnd(22)} ${fmt(q.price).padStart(10)}  ${fmtPct(q.changePct).padStart(8)}`
+      `${q.symbol.padEnd(10)} ${String(q.name).padEnd(22)} ${fmt(q.price).padStart(10)}  ${fmtPct(q.changePct).padStart(8)}`
     ),
+    gfexText,
     '',
     'HEADLINES',
-    '-'.repeat(40),
+    '-'.repeat(60),
     ...Object.entries(bySource).flatMap(([src, items]) => [
       `\n[${src}]`,
       ...items.slice(0, 5).map(h => `  • ${h.text}`),

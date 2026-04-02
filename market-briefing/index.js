@@ -23,20 +23,20 @@ async function run() {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
-  console.log(`\nMarket Briefing — ${dateStr}`);
+  console.log(`\nLithium Briefing — ${dateStr}`);
   console.log('─'.repeat(50));
 
   // 1. Fetch quotes
   console.log('\n[1/3] Fetching market quotes...');
   const quotes = await fetchAllQuotes(config.tickers);
 
-  // 2. Fetch headlines
-  console.log('\n[2/3] Fetching headlines...');
-  const { topEvent, bySource } = await fetchAllHeadlines(config);
+  // 2. Fetch headlines + GFEX LC futures table
+  console.log('\n[2/3] Fetching headlines & GFEX futures...');
+  const { topEvent, bySource, gfexContracts } = await fetchAllHeadlines(config);
 
   // 3. Build email
   console.log('\n[3/3] Building email...');
-  const { html, text } = buildEmail({ quotes, topEvent, bySource, dateStr });
+  const { html, text } = buildEmail({ quotes, topEvent, bySource, gfexContracts, dateStr });
 
   // Always write a local preview
   const previewPath = path.join(__dirname, 'preview.html');

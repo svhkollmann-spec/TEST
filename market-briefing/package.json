@@ -1,12 +1,13 @@
 {
   "name": "market-briefing",
   "version": "1.0.0",
-  "description": "Daily market briefing scraper — commodities & equities",
+  "description": "Daily market briefing scraper — lithium & commodities",
   "main": "index.js",
   "scripts": {
-    "start":     "node scheduler.js",
-    "briefing":  "node index.js",
-    "preview":   "node index.js --preview"
+    "start":            "node scheduler.js",
+    "briefing":         "node index.js",
+    "preview":          "node index.js --preview",
+    "install-browsers": "playwright install chromium"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.0",
     "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.4"
+    "nodemailer": "^8.0.4",
+    "playwright": "^1.59.1"
   }
 }

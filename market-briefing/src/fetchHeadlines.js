@@ -2,12 +2,14 @@
  * fetchHeadlines.js
  * 1. Scrapes custom news sources (config.customSources) using cheerio.
  * 2. Pulls Yahoo Finance RSS headlines for each ticker.
- * 3. Scores every headline against config.topics and surfaces the
+ * 3. Fetches GFEX Lithium Carbonate futures table via Playwright.
+ * 4. Scores every headline against config.topics and surfaces the
  *    single "biggest overnight event".
  */
 
-const axios   = require('axios');
-const cheerio = require('cheerio');
+const axios             = require('axios');
+const cheerio           = require('cheerio');
+const { fetchGFEXTable } = require('./fetchGFEX');
 
 const HEADERS = {
   'User-Agent':
@@ -83,7 +85,7 @@ function scoreHeadline(text, topics) {
 // Main export
 // ---------------------------------------------------------------------------
 async function fetchAllHeadlines(config) {
-  const { customSources, tickers, topics } = config;
+  const { customSources, tickers, topics, gfex } = config;
   let all = [];
 
   // 1. Custom sources
@@ -93,9 +95,8 @@ async function fetchAllHeadlines(config) {
     await sleep(500);
   }
 
-  // 2. Yahoo Finance RSS (first 5 tickers to avoid hammering)
-  const rssSymbols = tickers.slice(0, 5).map(t => t.symbol);
-  for (const symbol of rssSymbols) {
+  // 2. Yahoo Finance RSS (all configured tickers)
+  for (const { symbol } of tickers) {
     const items = await fetchYahooRSS(symbol, 5);
     all = all.concat(items);
     await sleep(300);
@@ -125,7 +126,12 @@ async function fetchAllHeadlines(config) {
   }
 
   console.log(`  [headlines] Total unique: ${deduped.length}`);
-  return { topEvent, bySource, all: scored };
+
+  // 3. GFEX Lithium Carbonate futures table (headless browser)
+  console.log('\n[GFEX] Fetching LC futures table...');
+  const gfexContracts = gfex ? await fetchGFEXTable(gfex) : [];
+
+  return { topEvent, bySource, all: scored, gfexContracts };
 }
 
 function sleep(ms) {
