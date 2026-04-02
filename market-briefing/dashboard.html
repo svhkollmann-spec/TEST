@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lithium Morning Briefing — Thursday 2 April 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -.02em;
+    }
+    .page-date {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ── Grid ── */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 44% 1fr;
+      grid-template-rows: auto auto;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      background: #1a6b8a;
+      border-radius: 10px;
+      padding: 22px 24px 24px;
+      overflow: hidden;
+    }
+
+    #panel-events {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: stretch;
+    }
+
+    .panel-header {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* ── Tickers ── */
+    .ticker-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .ticker-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.12);
+      gap: 8px;
+    }
+
+    .ticker-left { display: flex; flex-direction: column; gap: 2px; }
+    .ticker-symbol { font-size: 15px; font-weight: 700; }
+    .ticker-name   { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+    .ticker-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .ticker-price { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ticker-chg   { font-size: 12px; font-weight: 600; }
+
+    /* ── SMM prices ── */
+    .smm-source { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+
+    .price-list { display: flex; flex-direction: column; gap: 6px; }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.12);
+      gap: 8px;
+    }
+    .price-label { font-size: 13px; color: rgba(255,255,255,0.85); flex: 1; }
+    .price-value { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .price-value small { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 3px; }
+    .price-chg   { font-size: 12px; font-weight: 600; width: 60px; text-align: right; }
+
+    .smm-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+    .smm-note code { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Events panel ── */
+    .top-event {
+      background: rgba(0,0,0,0.18);
+      border-left: 3px solid rgba(255,255,255,0.5);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .top-event-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .top-event-text {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+    .top-event-source {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .sources-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .source-block { display: flex; flex-direction: column; gap: 6px; }
+
+    .source-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 4px;
+    }
+
+    .headline-item {
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.85);
+      padding: 6px 8px;
+      border-radius: 5px;
+      background: rgba(0,0,0,0.1);
+    }
+
+    .event-link {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+    }
+    .event-link:hover { text-decoration: underline; }
+
+    .empty-msg {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      font-style: italic;
+      padding: 20px 0;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard { grid-template-columns: 1fr; }
+      #panel-events { grid-column: 1; grid-row: auto; }
+      .sources-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <div class="page-title">Lithium Morning Briefing</div>
+    <div class="page-date">Thursday 2 April 2026</div>
+  </div>
+
+  <div class="dashboard">
+    <div class="left-col">
+      
+    <div class="panel" id="panel-tickers">
+      <div class="panel-header">TICKERS</div>
+      <div class="ticker-list">
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">PLS</span>
+          <span class="ticker-name">Pilbara Minerals</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">2.64</span>
+          <span class="ticker-chg" style="color:#f87171">▼ -5.04%</span>
+        </div>
+      </div>
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">LTR</span>
+          <span class="ticker-name">Liontown Resources</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">0.97</span>
+          <span class="ticker-chg" style="color:#4ade80">▲ +4.30%</span>
+        </div>
+      </div>
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">GC=F</span>
+          <span class="ticker-name">Gold (Front Month)</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">3,148.20</span>
+          <span class="ticker-chg" style="color:#4ade80">▲ +1.18%</span>
+        </div>
+      </div>
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">CL=F</span>
+          <span class="ticker-name">WTI Crude Oil</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">71.34</span>
+          <span class="ticker-chg" style="color:#f87171">▼ -1.05%</span>
+        </div>
+      </div>
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">DX=F</span>
+          <span class="ticker-name">US Dollar Index</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">104.22</span>
+          <span class="ticker-chg" style="color:#f87171">▼ -0.47%</span>
+        </div>
+      </div>
+      <div class="ticker-row">
+        <div class="ticker-left">
+          <span class="ticker-symbol">AUDUSD=X</span>
+          <span class="ticker-name">AUD/USD</span>
+        </div>
+        <div class="ticker-right">
+          <span class="ticker-price">0.63</span>
+          <span class="ticker-chg" style="color:#4ade80">▲ +0.74%</span>
+        </div>
+      </div></div>
+    </div>
+      
+      <div class="panel" id="panel-smm">
+        <div class="panel-header">GFEX LC FUTURES</div>
+        <div class="smm-source">Chinese Lithium Carbonate (GFEX settlement prices)</div>
+        <div class="price-list">
+        <div class="price-row">
+          <span class="price-label">LC2604</span>
+          <span class="price-value">76,250 <small>CNY/t</small></span>
+          <span class="price-chg" style="color:#f87171">▼ -130</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">LC2605</span>
+          <span class="price-value">76,730 <small>CNY/t</small></span>
+          <span class="price-chg" style="color:#f87171">▼ -150</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">LC2606</span>
+          <span class="price-value">77,100 <small>CNY/t</small></span>
+          <span class="price-chg" style="color:#f87171">▼ -150</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">LC2607</span>
+          <span class="price-value">77,420 <small>CNY/t</small></span>
+          <span class="price-chg" style="color:#f87171">▼ -120</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">LC2608</span>
+          <span class="price-value">77,720 <small>CNY/t</small></span>
+          <span class="price-chg" style="color:#f87171">▼ -80</span>
+        </div></div>
+        <div class="smm-note">
+          SMM spot data inaccessible — showing GFEX futures as reference.<br/>
+          Full curve: <a href="http://www.gfex.com.cn/en/LithiumCarbonate/LithiumCarbonate.shtml"
+            style="color:rgba(255,255,255,0.6);">gfex.com.cn</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="panel" id="panel-events">
+      <div class="panel-header">BIGGEST OVERNIGHT PUBLISHED EVENTS</div>
+      
+    <div class="top-event">
+      <div class="top-event-label">⚡ TOP STORY</div>
+      <div class="top-event-text">China lithium carbonate spot price falls 0.2% to ¥76,100/t as oversupply concerns persist despite improved EV demand data</div>
+      <div class="top-event-source">
+        Benchmark Mineral Intelligence
+        — <a href="https://www.benchmarkminerals.com" class="event-link">Read more ↗</a>
+      </div>
+    </div>
+      <div class="sources-grid">
+        <div class="source-block">
+          <div class="source-label">Mining.com</div>
+          
+        <div class="headline-item">
+          <a href="#" class="event-link">Pilbara Minerals flags potential offtake renegotiation as spodumene spot softens to $780/t CIF China</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Liontown Resources secures A$400m project financing for Kathleen Valley Stage 2 expansion</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">CATL signals Q2 battery-grade lithium carbonate procurement will remain below spot amid inventory drawdown</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Australian critical minerals strategy update: government backs new lithium processing facilities</a>
+        </div>
+        </div>
+        <div class="source-block">
+          <div class="source-label">Reuters Markets</div>
+          
+        <div class="headline-item">
+          <a href="#" class="event-link">Global EV sales up 34% YoY in February as China rebounds; lithium demand outlook revised higher for H2 2026</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Albemarle raises FY26 lithium revenue guidance on stronger-than-expected offtake volumes from South America</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">OPEC+ maintains output cuts through June; energy market volatility drives commodity fund inflows</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Fed holds rates steady; dollar softens as markets price in 2 cuts by year-end</a>
+        </div>
+        </div>
+        <div class="source-block">
+          <div class="source-label">Benchmark Mineral Intelligence</div>
+          
+        <div class="headline-item">
+          <a href="#" class="event-link">Spodumene 6% SC CIF China: $778/t (-$12 WoW) — downstream conversion margins remain under pressure</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Lithium hydroxide monohydrate battery grade: $11,800/t FOB China, stable vs last week</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">Hard rock vs brine cost curve shifts as Chilean SQM ramps; all-in sustaining costs diverge</a>
+        </div>
+        </div>
+        <div class="source-block">
+          <div class="source-label">FastMarkets Battery</div>
+          
+        <div class="headline-item">
+          <a href="#" class="event-link">Battery-grade lithium carbonate CIF North Asia assessed at $11,450/t, down $100 on the week</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">LFP cathode prices edge lower as lithium carbonate feedstock weakens; NMC remains supported</a>
+        </div>
+        <div class="headline-item">
+          <a href="#" class="event-link">South Korean battery makers lock in Q2 hydroxide volumes at fixed price, bypassing spot market</a>
+        </div>
+        </div></div>
+      
+    </div>
+  </div>
+</body>
+</html>
